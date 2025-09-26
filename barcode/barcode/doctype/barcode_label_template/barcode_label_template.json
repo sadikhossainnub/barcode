@@ -1,0 +1,211 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:template_name",
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "template_name",
+  "template_type",
+  "is_default",
+  "column_break_4",
+  "label_width",
+  "label_height",
+  "template_settings_section",
+  "html_template",
+  "css_styles",
+  "field_mappings_section",
+  "show_item_code",
+  "show_item_name",
+  "show_batch_no",
+  "column_break_12",
+  "show_serial_no",
+  "show_mfg_date",
+  "show_exp_date",
+  "column_break_16",
+  "show_quantity",
+  "show_company",
+  "barcode_settings_section",
+  "barcode_type",
+  "barcode_width",
+  "column_break_21",
+  "barcode_height",
+  "show_barcode_text"
+ ],
+ "fields": [
+  {
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Template Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "template_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Template Type",
+   "options": "Item\nBatch\nSerial No\nGeneral",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Default"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "50",
+   "fieldname": "label_width",
+   "fieldtype": "Int",
+   "label": "Label Width (mm)",
+   "reqd": 1
+  },
+  {
+   "default": "30",
+   "fieldname": "label_height",
+   "fieldtype": "Int",
+   "label": "Label Height (mm)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "template_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Template Settings"
+  },
+  {
+   "fieldname": "html_template",
+   "fieldtype": "Code",
+   "label": "HTML Template",
+   "options": "HTML"
+  },
+  {
+   "fieldname": "css_styles",
+   "fieldtype": "Code",
+   "label": "CSS Styles",
+   "options": "CSS"
+  },
+  {
+   "fieldname": "field_mappings_section",
+   "fieldtype": "Section Break",
+   "label": "Field Mappings"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_item_code",
+   "fieldtype": "Check",
+   "label": "Show Item Code"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_item_name",
+   "fieldtype": "Check",
+   "label": "Show Item Name"
+  },
+  {
+   "fieldname": "show_batch_no",
+   "fieldtype": "Check",
+   "label": "Show Batch No"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "show_serial_no",
+   "fieldtype": "Check",
+   "label": "Show Serial No"
+  },
+  {
+   "fieldname": "show_mfg_date",
+   "fieldtype": "Check",
+   "label": "Show MFG Date"
+  },
+  {
+   "fieldname": "show_exp_date",
+   "fieldtype": "Check",
+   "label": "Show EXP Date"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "show_quantity",
+   "fieldtype": "Check",
+   "label": "Show Quantity"
+  },
+  {
+   "fieldname": "show_company",
+   "fieldtype": "Check",
+   "label": "Show Company"
+  },
+  {
+   "fieldname": "barcode_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Barcode Settings"
+  },
+  {
+   "default": "Code128",
+   "fieldname": "barcode_type",
+   "fieldtype": "Select",
+   "label": "Barcode Type",
+   "options": "Code128\nCode39\nEAN-8\nEAN-13\nUPC-A\nUPC-E\nITF\nCodabar\nQR Code\nData Matrix\nPDF417\nAztec Code",
+   "reqd": 1
+  },
+  {
+   "default": "200",
+   "fieldname": "barcode_width",
+   "fieldtype": "Int",
+   "label": "Barcode Width (px)"
+  },
+  {
+   "fieldname": "column_break_21",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "100",
+   "fieldname": "barcode_height",
+   "fieldtype": "Int",
+   "label": "Barcode Height (px)"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_barcode_text",
+   "fieldtype": "Check",
+   "label": "Show Barcode Text"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Barcode",
+ "name": "Barcode Label Template",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

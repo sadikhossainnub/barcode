@@ -1,0 +1,85 @@
+/* Barcode Label Printing Styles */
+
+.barcode-print-dialog .modal-dialog {
+    max-width: 500px;
+}
+
+.barcode-label-preview {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px 0;
+    background: white;
+    text-align: center;
+}
+
+.barcode-label {
+    display: inline-block;
+    border: 1px solid #000;
+    padding: 5px;
+    margin: 5px;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: white;
+}
+
+.barcode-label .item-code {
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+
+.barcode-label .item-name {
+    font-size: 10px;
+    margin-bottom: 3px;
+}
+
+.barcode-label .batch-no,
+.barcode-label .serial-no {
+    font-size: 9px;
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.barcode-label .dates {
+    font-size: 8px;
+    margin-bottom: 3px;
+}
+
+.barcode-label .barcode {
+    margin: 5px 0;
+}
+
+.barcode-label .barcode img {
+    max-width: 100%;
+    height: auto;
+}
+
+.barcode-label .company {
+    font-size: 7px;
+    color: #666;
+    margin-top: 3px;
+}
+
+/* Print styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    .barcode-label, .barcode-label * {
+        visibility: visible;
+    }
+    
+    .barcode-label {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+        page-break-inside: avoid;
+    }
+    
+    @page {
+        margin: 0;
+        size: auto;
+    }
+}

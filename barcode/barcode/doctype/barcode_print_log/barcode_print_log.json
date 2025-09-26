@@ -1,0 +1,169 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "print_datetime",
+  "user",
+  "reference_doctype",
+  "column_break_4",
+  "reference_name",
+  "template_used",
+  "print_details_section",
+  "item_code",
+  "item_name",
+  "batch_no",
+  "column_break_10",
+  "serial_no",
+  "copies_printed",
+  "barcode_type",
+  "printer_settings_section",
+  "printer_type",
+  "printer_ip",
+  "column_break_16",
+  "print_status",
+  "error_message"
+ ],
+ "fields": [
+  {
+   "default": "now",
+   "fieldname": "print_datetime",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Print Date & Time",
+   "reqd": 1
+  },
+  {
+   "default": "user",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Reference Name",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "template_used",
+   "fieldtype": "Link",
+   "label": "Template Used",
+   "options": "Barcode Label Template"
+  },
+  {
+   "fieldname": "print_details_section",
+   "fieldtype": "Section Break",
+   "label": "Print Details"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Item"
+  },
+  {
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Item Name"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "Batch No",
+   "options": "Batch"
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "serial_no",
+   "fieldtype": "Link",
+   "label": "Serial No",
+   "options": "Serial No"
+  },
+  {
+   "default": "1",
+   "fieldname": "copies_printed",
+   "fieldtype": "Int",
+   "label": "Copies Printed"
+  },
+  {
+   "fieldname": "barcode_type",
+   "fieldtype": "Data",
+   "label": "Barcode Type"
+  },
+  {
+   "fieldname": "printer_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Printer Settings"
+  },
+  {
+   "fieldname": "printer_type",
+   "fieldtype": "Data",
+   "label": "Printer Type"
+  },
+  {
+   "fieldname": "printer_ip",
+   "fieldtype": "Data",
+   "label": "Printer IP"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Success",
+   "fieldname": "print_status",
+   "fieldtype": "Select",
+   "label": "Print Status",
+   "options": "Success\nFailed\nPending"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Text",
+   "label": "Error Message"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Barcode",
+ "name": "Barcode Print Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

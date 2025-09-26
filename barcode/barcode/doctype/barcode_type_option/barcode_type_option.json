@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "barcode_type",
+  "is_enabled",
+  "column_break_3",
+  "barcode_width",
+  "barcode_height"
+ ],
+ "fields": [
+  {
+   "fieldname": "barcode_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Barcode Type",
+   "options": "Code128\nCode39\nEAN-8\nEAN-13\nUPC-A\nUPC-E\nITF\nCodabar\nQR Code\nData Matrix\nPDF417\nAztec Code",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "barcode_width",
+   "fieldtype": "Int",
+   "label": "Barcode Width (px)"
+  },
+  {
+   "fieldname": "barcode_height",
+   "fieldtype": "Int",
+   "label": "Barcode Height (px)"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Barcode",
+ "name": "Barcode Type Option",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

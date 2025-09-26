@@ -25,8 +25,8 @@ app_license = "mit"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/barcode/css/barcode.css"
-# app_include_js = "/assets/barcode/js/barcode.js"
+app_include_css = "/assets/barcode/css/barcode.css"
+app_include_js = "/assets/barcode/js/barcode_print.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/barcode/css/barcode.css"
@@ -43,7 +43,12 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+	"Item": "public/js/item.js",
+	"Batch": "public/js/batch.js",
+	"Serial No": "public/js/serial_no.js",
+	"Delivery Note": "public/js/delivery_note.js"
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -83,7 +88,11 @@ app_license = "mit"
 # ------------
 
 # before_install = "barcode.install.before_install"
-# after_install = "barcode.install.after_install"
+after_install = "barcode.install.after_install"
+
+# Fixtures
+# --------
+fixtures = ["Barcode Label Template"]
 
 # Uninstallation
 # ------------

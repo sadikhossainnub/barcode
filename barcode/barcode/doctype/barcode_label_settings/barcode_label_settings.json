@@ -1,0 +1,179 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "label_settings_section",
+  "default_label_width",
+  "default_label_height",
+  "default_copies",
+  "column_break_4",
+  "default_barcode_type",
+  "default_printer_type",
+  "barcode_options_section",
+  "supported_barcode_types",
+  "printer_settings_section",
+  "enable_direct_printing",
+  "printer_ip",
+  "column_break_11",
+  "printer_port",
+  "printer_model",
+  "doctype_permissions_section",
+  "enable_item_printing",
+  "enable_batch_printing",
+  "column_break_16",
+  "enable_serial_printing",
+  "enable_delivery_note_printing"
+ ],
+ "fields": [
+  {
+   "fieldname": "label_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Label Settings"
+  },
+  {
+   "default": "50",
+   "fieldname": "default_label_width",
+   "fieldtype": "Int",
+   "label": "Default Label Width (mm)",
+   "reqd": 1
+  },
+  {
+   "default": "30",
+   "fieldname": "default_label_height",
+   "fieldtype": "Int",
+   "label": "Default Label Height (mm)",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "default_copies",
+   "fieldtype": "Int",
+   "label": "Default Number of Copies",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Code128",
+   "fieldname": "default_barcode_type",
+   "fieldtype": "Select",
+   "label": "Default Barcode Type",
+   "options": "Code128\nCode39\nEAN-8\nEAN-13\nUPC-A\nUPC-E\nITF\nCodabar\nQR Code\nData Matrix\nPDF417\nAztec Code",
+   "reqd": 1
+  },
+  {
+   "default": "PDF",
+   "fieldname": "default_printer_type",
+   "fieldtype": "Select",
+   "label": "Default Printer Type",
+   "options": "PDF\nZebra (ZPL)\nTSC (TSPL)\nGodex (EPL)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "barcode_options_section",
+   "fieldtype": "Section Break",
+   "label": "Barcode Options"
+  },
+  {
+   "fieldname": "supported_barcode_types",
+   "fieldtype": "Table",
+   "label": "Supported Barcode Types",
+   "options": "Barcode Type Option"
+  },
+  {
+   "fieldname": "printer_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Printer Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_direct_printing",
+   "fieldtype": "Check",
+   "label": "Enable Direct Printing"
+  },
+  {
+   "depends_on": "enable_direct_printing",
+   "fieldname": "printer_ip",
+   "fieldtype": "Data",
+   "label": "Printer IP Address"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "9100",
+   "depends_on": "enable_direct_printing",
+   "fieldname": "printer_port",
+   "fieldtype": "Int",
+   "label": "Printer Port"
+  },
+  {
+   "depends_on": "enable_direct_printing",
+   "fieldname": "printer_model",
+   "fieldtype": "Data",
+   "label": "Printer Model"
+  },
+  {
+   "fieldname": "doctype_permissions_section",
+   "fieldtype": "Section Break",
+   "label": "DocType Permissions"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_item_printing",
+   "fieldtype": "Check",
+   "label": "Enable Item Printing"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_batch_printing",
+   "fieldtype": "Check",
+   "label": "Enable Batch Printing"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_serial_printing",
+   "fieldtype": "Check",
+   "label": "Enable Serial No Printing"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_delivery_note_printing",
+   "fieldtype": "Check",
+   "label": "Enable Delivery Note Printing"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Barcode",
+ "name": "Barcode Label Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
