@@ -234,3 +234,132 @@ def bulk_print_labels(doctype, docnames, template=None, copies=1):
 		})
 	
 	return results
+
+@frappe.whitelist()
+def save_visual_template(template_data):
+	"""Save visually designed template"""
+	try:
+		template_data = json.loads(template_data) if isinstance(template_data, str) else template_data
+		
+		# Generate HTML and CSS from visual elements
+		html_template, css_styles = generate_template_from_elements(template_data['elements'])
+		
+		# Create or update template
+		if frappe.db.exists("Barcode Label Template", template_data['name']):
+			template = frappe.get_doc("Barcode Label Template", template_data['name'])
+		else:
+			template = frappe.new_doc("Barcode Label Template")
+			template.template_name = template_data['name']
+		
+		template.update({
+			'template_type': template_data['template_type'],
+			'label_width': template_data['label_width'],
+			'label_height': template_data['label_height'],
+			'barcode_type': template_data['barcode_type'],
+			'barcode_width': template_data['barcode_width'],
+			'barcode_height': template_data['barcode_height'],
+			'html_template': html_template,
+			'css_styles': css_styles
+		})
+		
+		template.save()
+		frappe.db.commit()
+		
+		return {'success': True, 'name': template.name}
+		
+	except Exception as e:
+		frappe.log_error(f"Visual template save error: {str(e)}")
+		return {'success': False, 'error': str(e)}
+
+@frappe.whitelist()
+def preview_visual_template(template_data):
+	"""Preview visually designed template"""
+	try:
+		template_data = json.loads(template_data) if isinstance(template_data, str) else template_data
+		
+		# Generate HTML and CSS
+		html_template, css_styles = generate_template_from_elements(template_data['elements'])
+		
+		# Sample data for preview
+		sample_data = {
+			'item_code': 'SAMPLE001',
+			'item_name': 'Sample Item Name',
+			'batch_no': 'BATCH001',
+			'serial_no': 'SN001',
+			'mfg_date': '01/01/2024',
+			'exp_date': '01/01/2025',
+			'quantity': '10',
+			'company': 'Sample Company',
+			'barcode_html': '<img src="/barcode?type=Code128&value=SAMPLE001&width=200&height=100" alt="SAMPLE001" />'
+		}
+		
+		# Render template
+		html = frappe.render_template(html_template, sample_data)
+		
+		full_html = f"""
+		<html>
+		<head>
+			<title>Label Preview</title>
+			<style>
+			{css_styles}
+			body {{ margin: 20px; background: #f5f5f5; }}
+			</style>
+		</head>
+		<body>
+			{html}
+		</body>
+		</html>
+		"""
+		
+		return {'success': True, 'html': full_html}
+		
+	except Exception as e:
+		return {'success': False, 'error': str(e)}
+
+def generate_template_from_elements(elements):
+	"""Generate HTML and CSS from visual elements"""
+	html_parts = ['<div class="barcode-label">']
+	css_parts = []
+	
+	for i, element in enumerate(elements):
+		class_name = f"element-{i}"
+		field = element['field']
+		
+		if field == 'barcode':
+			html_parts.append(f'<div class="{class_name}">{{{{ barcode_html }}}}</div>')
+		else:
+			html_parts.append(f'<div class="{class_name}">{{{{ {field} }}}}</div>')
+		
+		# Generate CSS for positioning and styling
+		css_parts.append(f"""
+.{class_name} {{
+	position: absolute;
+	left: {element['x']}px;
+	top: {element['y']}px;
+	width: {element['width']}px;
+	height: {element['height']}px;
+	font-size: {element['fontSize']};
+	font-weight: {element['fontWeight']};
+	text-align: {element['textAlign']};
+}}""")
+	
+	html_parts.append('</div>')
+	
+	# Base CSS
+	base_css = """
+.barcode-label {
+	position: relative;
+	border: 1px solid #000;
+	background: white;
+	font-family: Arial, sans-serif;
+}
+.barcode-label img {
+	max-width: 100%;
+	height: auto;
+}
+"""
+	
+	html_template = '\n'.join(html_parts)
+	css_styles = base_css + '\n'.join(css_parts)
+	
+	return html_template, css_styles
