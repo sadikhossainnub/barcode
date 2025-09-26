@@ -5,425 +5,694 @@ frappe.pages['barcode-designer'].on_page_load = function(wrapper) {
 		single_column: true
 	});
 
-	// Load jQuery UI if not already loaded
 	frappe.require([
-		'/assets/frappe/js/lib/jquery/jquery-ui.min.js'
+		'https://unpkg.com/vue@3/dist/vue.global.js'
 	], function() {
-		frappe.barcode_designer = new BarcodeDesigner(wrapper);
-		$(wrapper).bind('show', function() {
-			frappe.barcode_designer.show();
-		});
+		new VueBarcodeDesigner(wrapper);
 	});
 }
 
-class BarcodeDesigner {
+class VueBarcodeDesigner {
 	constructor(wrapper) {
 		this.wrapper = wrapper;
-		this.page = wrapper.page;
 		this.make();
 	}
 
 	make() {
-		this.setup_toolbar();
-		this.setup_designer();
-		this.load_templates();
-	}
-
-	setup_toolbar() {
-		this.page.set_primary_action('Save Template', () => this.save_template());
-		this.page.add_menu_item('New Template', () => this.new_template());
-		this.page.add_menu_item('Load Template', () => this.load_template_dialog());
-		this.page.add_menu_item('Preview', () => this.preview_label());
-	}
-
-	setup_designer() {
 		$(this.wrapper).find('.layout-main-section').html(`
-			<div class="barcode-designer-container">
-				<div class="designer-sidebar">
-					<div class="template-info">
+			<div id="barcode-designer-app"></div>
+		`);
+
+		const template = `
+			<div class="designer-container">
+				<div class="sidebar">
+					<div class="section">
 						<h4>Template Settings</h4>
 						<div class="form-group">
-							<label>Template Name</label>
-							<input type="text" class="form-control" id="template-name" placeholder="Enter template name">
+							<label>Name</label>
+							<input v-model="template.name" class="form-control" placeholder="Template name">
 						</div>
-						<div class="form-group">
-							<label>Template Type</label>
-							<select class="form-control" id="template-type">
-								<option value="Item">Item</option>
-								<option value="Batch">Batch</option>
-								<option value="Serial No">Serial No</option>
-								<option value="General">General</option>
-							</select>
-						</div>
-						<div class="form-group">
-							<label>Label Width (mm)</label>
-							<input type="number" class="form-control" id="label-width" value="50">
-						</div>
-						<div class="form-group">
-							<label>Label Height (mm)</label>
-							<input type="number" class="form-control" id="label-height" value="30">
-						</div>
-					</div>
-
-					<div class="field-options">
-						<h4>Available Fields</h4>
-						<div class="field-list">
-							<div class="field-item" data-field="item_code">
-								<span class="field-name">Item Code</span>
-								<button class="btn btn-xs btn-primary add-field">Add</button>
+						<div class="row">
+							<div class="col-6">
+								<label>Width (mm)</label>
+								<input v-model.number="template.width" type="number" class="form-control">
 							</div>
-							<div class="field-item" data-field="item_name">
-								<span class="field-name">Item Name</span>
-								<button class="btn btn-xs btn-primary add-field">Add</button>
-							</div>
-							<div class="field-item" data-field="batch_no">
-								<span class="field-name">Batch No</span>
-								<button class="btn btn-xs btn-primary add-field">Add</button>
-							</div>
-							<div class="field-item" data-field="serial_no">
-								<span class="field-name">Serial No</span>
-								<button class="btn btn-xs btn-primary add-field">Add</button>
-							</div>
-							<div class="field-item" data-field="mfg_date">
-								<span class="field-name">MFG Date</span>
-								<button class="btn btn-xs btn-primary add-field">Add</button>
-							</div>
-							<div class="field-item" data-field="exp_date">
-								<span class="field-name">EXP Date</span>
-								<button class="btn btn-xs btn-primary add-field">Add</button>
-							</div>
-							<div class="field-item" data-field="quantity">
-								<span class="field-name">Quantity</span>
-								<button class="btn btn-xs btn-primary add-field">Add</button>
-							</div>
-							<div class="field-item" data-field="company">
-								<span class="field-name">Company</span>
-								<button class="btn btn-xs btn-primary add-field">Add</button>
-							</div>
-							<div class="field-item" data-field="barcode">
-								<span class="field-name">Barcode</span>
-								<button class="btn btn-xs btn-primary add-field">Add</button>
+							<div class="col-6">
+								<label>Height (mm)</label>
+								<input v-model.number="template.height" type="number" class="form-control">
 							</div>
 						</div>
 					</div>
 
-					<div class="barcode-settings">
-						<h4>Barcode Settings</h4>
+					<div class="section">
+						<h4>Live Preview</h4>
 						<div class="form-group">
-							<label>Barcode Type</label>
-							<select class="form-control" id="barcode-type">
-								<option value="Code128">Code128</option>
-								<option value="Code39">Code39</option>
-								<option value="EAN-13">EAN-13</option>
-								<option value="QR Code">QR Code</option>
+							<label class="switch-label">
+								<input type="checkbox" v-model="previewMode" @change="togglePreviewMode">
+								<span>Show Real Data</span>
+							</label>
+						</div>
+						<div v-if="previewMode" class="form-group">
+							<label>Select Record</label>
+							<select v-model="selectedRecord" @change="fetchLiveData" class="form-control">
+								<option value="">Choose...</option>
+								<option v-for="option in recordOptions" :key="option.value" :value="option.value">
+									{{ option.label }}
+								</option>
 							</select>
 						</div>
-						<div class="form-group">
-							<label>Barcode Width (px)</label>
-							<input type="number" class="form-control" id="barcode-width" value="200">
+					</div>
+
+					<div class="section">
+						<h4>Data Fields</h4>
+						<div class="element-buttons">
+							<button @click="addElement('item_code')" class="btn btn-sm btn-primary">📦 Item Code</button>
+							<button @click="addElement('item_name')" class="btn btn-sm btn-primary">🏷️ Item Name</button>
+							<button @click="addElement('batch_no')" class="btn btn-sm btn-primary">🔢 Batch No</button>
+							<button @click="addElement('barcode')" class="btn btn-sm btn-primary">📱 Barcode</button>
 						</div>
-						<div class="form-group">
-							<label>Barcode Height (px)</label>
-							<input type="number" class="form-control" id="barcode-height" value="100">
+					</div>
+
+					<div class="section">
+						<h4>Design Elements</h4>
+						<div class="element-buttons">
+							<button @click="addCustomText()" class="btn btn-sm btn-success">📝 Custom Text</button>
+							<button @click="addLogo()" class="btn btn-sm btn-info">🖼️ Logo</button>
+							<button @click="addImage()" class="btn btn-sm btn-warning">📷 Image</button>
+							<button @click="addLine()" class="btn btn-sm btn-secondary">➖ Line</button>
+							<button @click="addBox()" class="btn btn-sm btn-secondary">⬜ Box</button>
+							<button @click="addQRCode()" class="btn btn-sm btn-dark">📱 QR Code</button>
 						</div>
+					</div>
+
+					<div class="section">
+						<h4>Actions</h4>
+						<button @click="saveTemplate()" class="btn btn-success btn-block">💾 Save</button>
+						<button @click="previewLabel()" class="btn btn-info btn-block">👁️ Preview</button>
+						<button @click="clearCanvas()" class="btn btn-danger btn-block">🗑️ Clear</button>
 					</div>
 				</div>
 
-				<div class="designer-canvas">
-					<div class="canvas-toolbar">
-						<button class="btn btn-sm btn-default" id="zoom-in">Zoom In</button>
-						<button class="btn btn-sm btn-default" id="zoom-out">Zoom Out</button>
-						<button class="btn btn-sm btn-default" id="reset-zoom">Reset</button>
-						<span class="zoom-level">100%</span>
+				<div class="canvas-area">
+					<div class="toolbar">
+						<button @click="zoomIn()" class="btn btn-sm">🔍+</button>
+						<button @click="zoomOut()" class="btn btn-sm">🔍-</button>
+						<button @click="resetZoom()" class="btn btn-sm">100%</button>
+						<span class="zoom-display">{{ Math.round(zoom * 100) }}%</span>
+						<button @click="undo()" :disabled="!canUndo" class="btn btn-sm">↶</button>
+						<button @click="redo()" :disabled="!canRedo" class="btn btn-sm">↷</button>
 					</div>
-					<div class="canvas-container">
-						<div class="label-canvas" id="label-canvas">
-							<div class="canvas-grid"></div>
-							<div class="drop-zone">
-								<p>Drag fields here to design your label</p>
+
+					<div class="canvas-container" @click="deselectAll">
+						<div 
+							class="canvas" 
+							:style="canvasStyle"
+						>
+							<div 
+								v-for="element in elements" 
+								:key="element.id"
+								class="canvas-element"
+								:class="{ selected: element.selected, [element.type]: true }"
+								:style="elementStyle(element)"
+								@click.stop="selectElement(element)"
+								@mousedown="startDrag(element, $event)"
+							>
+								<div class="element-content" v-html="renderElement(element)"></div>
+								<div v-if="element.selected" class="element-controls">
+									<button @click.stop="deleteElement(element)" class="delete-btn">×</button>
+								</div>
+								<div v-if="element.selected" class="resize-handles">
+									<div class="handle se" @mousedown.stop="startResize(element, 'se', $event)"></div>
+								</div>
+							</div>
+
+							<div v-if="elements.length === 0" class="drop-zone">
+								<div class="drop-icon">🎨</div>
+								<h3>Barcode Designer</h3>
+								<p>Click buttons to add elements</p>
 							</div>
 						</div>
 					</div>
 				</div>
 
 				<div class="properties-panel">
-					<h4>Element Properties</h4>
-					<div id="element-properties">
+					<h4>Properties</h4>
+					<div v-if="selectedElement">
+						<div class="form-group">
+							<label>Type: {{ selectedElement.type }}</label>
+						</div>
+						<div class="form-group">
+							<label>X Position</label>
+							<input v-model.number="selectedElement.x" type="number" class="form-control form-control-sm">
+						</div>
+						<div class="form-group">
+							<label>Y Position</label>
+							<input v-model.number="selectedElement.y" type="number" class="form-control form-control-sm">
+						</div>
+						<div class="form-group">
+							<label>Width</label>
+							<input v-model.number="selectedElement.width" type="number" class="form-control form-control-sm">
+						</div>
+						<div class="form-group">
+							<label>Height</label>
+							<input v-model.number="selectedElement.height" type="number" class="form-control form-control-sm">
+						</div>
+						<div v-if="selectedElement.type === 'text'" class="form-group">
+							<label>Text</label>
+							<input v-model="selectedElement.content" class="form-control form-control-sm">
+						</div>
+						<div class="form-group">
+							<label>Font Size</label>
+							<input v-model.number="selectedElement.fontSize" type="number" class="form-control form-control-sm">
+						</div>
+						<div class="form-group">
+							<label>Color</label>
+							<input v-model="selectedElement.color" type="color" class="form-control form-control-sm">
+						</div>
+					</div>
+					<div v-else class="no-selection">
+						<div class="icon">🎯</div>
 						<p>Select an element to edit properties</p>
+					</div>
+
+					<div class="layers-section">
+						<h4>Layers</h4>
+						<div class="layer-list">
+							<div 
+								v-for="element in elements" 
+								:key="element.id"
+								class="layer-item"
+								:class="{ active: element.selected }"
+								@click="selectElement(element)"
+							>
+								<span>{{ element.type }} - {{ element.id.slice(-4) }}</span>
+								<button @click.stop="deleteElement(element)" class="btn btn-xs">×</button>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
-		`);
+		`;
 
-		this.setup_interactions();
-	}
-
-	setup_interactions() {
-		const canvas = $(this.wrapper).find('#label-canvas');
-		const self = this;
-
-		// Make fields draggable
-		$(this.wrapper).find('.add-field').on('click', function() {
-			const fieldType = $(this).closest('.field-item').data('field');
-			self.add_field_to_canvas(fieldType);
-		});
-
-		// Canvas drop functionality
-		canvas.on('dragover', function(e) {
-			e.preventDefault();
-		});
-
-		canvas.on('drop', function(e) {
-			e.preventDefault();
-			const fieldType = e.originalEvent.dataTransfer.getData('text/plain');
-			const rect = canvas[0].getBoundingClientRect();
-			const x = e.originalEvent.clientX - rect.left;
-			const y = e.originalEvent.clientY - rect.top;
-			self.add_field_at_position(fieldType, x, y);
-		});
-
-		// Zoom controls
-		$(this.wrapper).find('#zoom-in').on('click', () => this.zoom(1.2));
-		$(this.wrapper).find('#zoom-out').on('click', () => this.zoom(0.8));
-		$(this.wrapper).find('#reset-zoom').on('click', () => this.reset_zoom());
-
-		// Update canvas size when dimensions change
-		$(this.wrapper).find('#label-width, #label-height').on('input', () => {
-			this.update_canvas_size();
-		});
-
-		this.update_canvas_size();
-	}
-
-	add_field_to_canvas(fieldType) {
-		const canvas = $(this.wrapper).find('#label-canvas');
-		const element = this.create_field_element(fieldType);
-		canvas.append(element);
-		this.make_element_interactive(element);
-	}
-
-	create_field_element(fieldType) {
-		const fieldConfig = this.get_field_config(fieldType);
-		const element = $(`
-			<div class="canvas-element" data-field="${fieldType}">
-				<div class="element-content">${fieldConfig.sample}</div>
-				<div class="element-controls">
-					<button class="btn btn-xs btn-danger delete-element">×</button>
-				</div>
-			</div>
-		`);
-
-		element.css({
-			position: 'absolute',
-			left: '10px',
-			top: '10px',
-			border: '1px dashed #ccc',
-			padding: '5px',
-			background: 'white',
-			cursor: 'move',
-			fontSize: fieldConfig.fontSize || '12px',
-			fontWeight: fieldConfig.fontWeight || 'normal'
-		});
-
-		return element;
-	}
-
-	get_field_config(fieldType) {
-		const configs = {
-			item_code: { sample: 'ITEM001', fontSize: '14px', fontWeight: 'bold' },
-			item_name: { sample: 'Sample Item Name', fontSize: '12px' },
-			batch_no: { sample: 'BATCH001', fontSize: '11px' },
-			serial_no: { sample: 'SN001', fontSize: '11px' },
-			mfg_date: { sample: 'MFG: 01/01/2024', fontSize: '10px' },
-			exp_date: { sample: 'EXP: 01/01/2025', fontSize: '10px' },
-			quantity: { sample: 'Qty: 10', fontSize: '11px' },
-			company: { sample: 'Company Name', fontSize: '10px' },
-			barcode: { sample: '||||| |||| |||||', fontSize: '16px', fontFamily: 'monospace' }
-		};
-		return configs[fieldType] || { sample: fieldType, fontSize: '12px' };
-	}
-
-	make_element_interactive(element) {
-		const self = this;
+		const { createApp } = Vue;
 		
-		// Make draggable
-		element.draggable({
-			containment: '#label-canvas',
-			stop: function() {
-				self.update_element_properties($(this));
-			}
-		});
-
-		// Make resizable
-		element.resizable({
-			handles: 'se',
-			stop: function() {
-				self.update_element_properties($(this));
-			}
-		});
-
-		// Click to select
-		element.on('click', function(e) {
-			e.stopPropagation();
-			$('.canvas-element').removeClass('selected');
-			$(this).addClass('selected');
-			self.show_element_properties($(this));
-		});
-
-		// Delete button
-		element.find('.delete-element').on('click', function(e) {
-			e.stopPropagation();
-			element.remove();
-		});
-	}
-
-	show_element_properties(element) {
-		const fieldType = element.data('field');
-		const properties = $(this.wrapper).find('#element-properties');
-		
-		properties.html(`
-			<div class="form-group">
-				<label>Field: ${fieldType}</label>
-			</div>
-			<div class="form-group">
-				<label>Font Size</label>
-				<input type="number" class="form-control element-font-size" value="${parseInt(element.css('font-size'))}">
-			</div>
-			<div class="form-group">
-				<label>Font Weight</label>
-				<select class="form-control element-font-weight">
-					<option value="normal" ${element.css('font-weight') === 'normal' ? 'selected' : ''}>Normal</option>
-					<option value="bold" ${element.css('font-weight') === 'bold' ? 'selected' : ''}>Bold</option>
-				</select>
-			</div>
-			<div class="form-group">
-				<label>Text Align</label>
-				<select class="form-control element-text-align">
-					<option value="left" ${element.css('text-align') === 'left' ? 'selected' : ''}>Left</option>
-					<option value="center" ${element.css('text-align') === 'center' ? 'selected' : ''}>Center</option>
-					<option value="right" ${element.css('text-align') === 'right' ? 'selected' : ''}>Right</option>
-				</select>
-			</div>
-		`);
-
-		// Bind property changes
-		properties.find('.element-font-size').on('input', function() {
-			element.css('font-size', $(this).val() + 'px');
-		});
-
-		properties.find('.element-font-weight').on('change', function() {
-			element.css('font-weight', $(this).val());
-		});
-
-		properties.find('.element-text-align').on('change', function() {
-			element.css('text-align', $(this).val());
-		});
-	}
-
-	update_canvas_size() {
-		const width = $(this.wrapper).find('#label-width').val();
-		const height = $(this.wrapper).find('#label-height').val();
-		const canvas = $(this.wrapper).find('#label-canvas');
-		
-		// Convert mm to pixels (assuming 96 DPI)
-		const pxWidth = (width * 96) / 25.4;
-		const pxHeight = (height * 96) / 25.4;
-		
-		canvas.css({
-			width: pxWidth + 'px',
-			height: pxHeight + 'px',
-			border: '2px solid #333',
-			position: 'relative',
-			background: 'white',
-			margin: '20px auto'
-		});
-	}
-
-	zoom(factor) {
-		this.zoomLevel = (this.zoomLevel || 1) * factor;
-		const canvas = $(this.wrapper).find('#label-canvas');
-		canvas.css('transform', `scale(${this.zoomLevel})`);
-		$(this.wrapper).find('.zoom-level').text(Math.round(this.zoomLevel * 100) + '%');
-	}
-
-	reset_zoom() {
-		this.zoomLevel = 1;
-		const canvas = $(this.wrapper).find('#label-canvas');
-		canvas.css('transform', 'scale(1)');
-		$(this.wrapper).find('.zoom-level').text('100%');
-	}
-
-	generate_template_data() {
-		const elements = [];
-		$(this.wrapper).find('.canvas-element').each(function() {
-			const $el = $(this);
-			const position = $el.position();
-			elements.push({
-				field: $el.data('field'),
-				x: position.left,
-				y: position.top,
-				width: $el.width(),
-				height: $el.height(),
-				fontSize: $el.css('font-size'),
-				fontWeight: $el.css('font-weight'),
-				textAlign: $el.css('text-align')
-			});
-		});
-
-		return {
-			name: $(this.wrapper).find('#template-name').val(),
-			template_type: $(this.wrapper).find('#template-type').val(),
-			label_width: $(this.wrapper).find('#label-width').val(),
-			label_height: $(this.wrapper).find('#label-height').val(),
-			barcode_type: $(this.wrapper).find('#barcode-type').val(),
-			barcode_width: $(this.wrapper).find('#barcode-width').val(),
-			barcode_height: $(this.wrapper).find('#barcode-height').val(),
-			elements: elements
-		};
-	}
-
-	save_template() {
-		const templateData = this.generate_template_data();
-		
-		if (!templateData.name) {
-			frappe.msgprint('Please enter a template name');
-			return;
-		}
-
-		frappe.call({
-			method: 'barcode.barcode.api.save_visual_template',
-			args: { template_data: templateData },
-			callback: function(r) {
-				if (r.message.success) {
-					frappe.show_alert('Template saved successfully');
-				} else {
-					frappe.msgprint('Error saving template: ' + r.message.error);
+		this.app = createApp({
+			template: template,
+			data() {
+				return {
+					template: {
+						name: '',
+						width: 50,
+						height: 30,
+						type: 'General'
+					},
+					elements: [],
+					selectedElement: null,
+					zoom: 1,
+					history: [],
+					historyIndex: -1,
+					dragData: null,
+					resizeData: null,
+					nextId: 1,
+					liveData: {
+						item_code: 'SAMPLE001',
+						item_name: 'Sample Product',
+						batch_no: 'BATCH001',
+						serial_no: 'SN001',
+						mfg_date: '01/01/2024',
+						exp_date: '01/01/2025',
+						quantity: '10',
+						company: 'Sample Company'
+					},
+					previewMode: false,
+					selectedRecord: null,
+					recordOptions: []
 				}
-			}
-		});
-	}
+			},
+			computed: {
+				canvasStyle() {
+					const width = this.template.width * 3.78;
+					const height = this.template.height * 3.78;
+					return {
+						width: width + 'px',
+						height: height + 'px',
+						transform: `scale(${this.zoom})`,
+						transformOrigin: 'center'
+					};
+				},
+				canUndo() {
+					return this.historyIndex > 0;
+				},
+				canRedo() {
+					return this.historyIndex < this.history.length - 1;
+				}
+			},
+			methods: {
+				addElement(type) {
+					const samples = {
+						item_code: 'ITEM001',
+						item_name: 'Sample Item Name',
+						batch_no: 'BATCH001',
+						barcode: '||||| ||||'
+					};
 
-	preview_label() {
-		const templateData = this.generate_template_data();
-		
-		frappe.call({
-			method: 'barcode.barcode.api.preview_visual_template',
-			args: { template_data: templateData },
-			callback: function(r) {
-				if (r.message.success) {
+					const element = {
+						id: 'el_' + this.nextId++,
+						type: type,
+						x: 10,
+						y: 10,
+						width: 80,
+						height: 25,
+						fontSize: 12,
+						color: '#000000',
+						content: samples[type] || type,
+						selected: false
+					};
+
+					this.elements.push(element);
+					this.saveState();
+				},
+
+				addCustomText() {
+					const element = {
+						id: 'el_' + this.nextId++,
+						type: 'custom_text',
+						x: 10,
+						y: 40,
+						width: 100,
+						height: 20,
+						fontSize: 14,
+						fontWeight: 'normal',
+						color: '#000000',
+						content: 'Custom Text',
+						selected: false
+					};
+
+					this.elements.push(element);
+					this.saveState();
+				},
+
+				addLogo() {
+					const element = {
+						id: 'el_' + this.nextId++,
+						type: 'logo',
+						x: 10,
+						y: 10,
+						width: 50,
+						height: 30,
+						imageUrl: '',
+						content: 'LOGO',
+						selected: false
+					};
+
+					this.elements.push(element);
+					this.saveState();
+				},
+
+				addImage() {
+					const element = {
+						id: 'el_' + this.nextId++,
+						type: 'image',
+						x: 60,
+						y: 10,
+						width: 40,
+						height: 30,
+						imageUrl: '',
+						content: 'IMG',
+						selected: false
+					};
+
+					this.elements.push(element);
+					this.saveState();
+				},
+
+				addQRCode() {
+					const element = {
+						id: 'el_' + this.nextId++,
+						type: 'qr',
+						x: 10,
+						y: 90,
+						width: 40,
+						height: 40,
+						qrContent: 'Sample QR',
+						content: 'QR',
+						selected: false
+					};
+
+					this.elements.push(element);
+					this.saveState();
+				},
+
+				addLine() {
+					const element = {
+						id: 'el_' + this.nextId++,
+						type: 'line',
+						x: 10,
+						y: 70,
+						width: 100,
+						height: 2,
+						fontSize: 12,
+						color: '#000000',
+						content: '',
+						selected: false
+					};
+
+					this.elements.push(element);
+					this.saveState();
+				},
+
+				addBox() {
+					const element = {
+						id: 'el_' + this.nextId++,
+						type: 'box',
+						x: 10,
+						y: 80,
+						width: 60,
+						height: 40,
+						fontSize: 12,
+						color: '#000000',
+						content: '',
+						selected: false
+					};
+
+					this.elements.push(element);
+					this.saveState();
+				},
+
+				selectElement(element) {
+					this.deselectAll();
+					element.selected = true;
+					this.selectedElement = element;
+				},
+
+				deselectAll() {
+					this.elements.forEach(el => el.selected = false);
+					this.selectedElement = null;
+				},
+
+				deleteElement(element) {
+					const index = this.elements.indexOf(element);
+					if (index > -1) {
+						this.elements.splice(index, 1);
+						this.selectedElement = null;
+						this.saveState();
+					}
+				},
+
+				elementStyle(element) {
+					return {
+						position: 'absolute',
+						left: element.x + 'px',
+						top: element.y + 'px',
+						width: element.width + 'px',
+						height: element.height + 'px',
+						fontSize: element.fontSize + 'px',
+						fontWeight: element.fontWeight || 'normal',
+						color: element.color
+					};
+				},
+
+				renderElement(element) {
+					let content = element.content;
+					
+					// Use live data if preview mode is on
+					if (this.previewMode && this.liveData[element.type]) {
+						content = this.liveData[element.type];
+					}
+					
+					switch(element.type) {
+						case 'line':
+							return '<hr style="margin: 0; border-top: 2px solid currentColor; width: 100%;">';
+						case 'box':
+							return '<div style="width: 100%; height: 100%; border: 2px solid currentColor;"></div>';
+						case 'barcode':
+							if (this.previewMode && this.liveData.item_code !== 'Loading...') {
+								return `<img src="/barcode?type=Code128&value=${this.liveData.item_code}&width=120&height=40" style="max-width: 100%; height: auto;" />`;
+							}
+							return '<div style="font-family: monospace; text-align: center; line-height: 1;">' + content + '</div>';
+						case 'logo':
+						case 'image':
+							if (element.imageUrl) {
+								return `<img src="${element.imageUrl}" style="width: 100%; height: 100%; object-fit: contain;" />`;
+							}
+							return `<div style="background: #f0f0f0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">${content}</div>`;
+						case 'qr':
+							if (element.qrContent) {
+								return `<img src="/qrcode?data=${encodeURIComponent(element.qrContent)}&size=100" style="width: 100%; height: 100%; object-fit: contain;" />`;
+							}
+							return '<div style="background: #000; color: #fff; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 8px;">QR</div>';
+						case 'custom_text':
+							return content.replace(/\n/g, '<br>');
+						default:
+							return content;
+					}
+				},
+
+				startDrag(element, event) {
+					this.selectElement(element);
+					this.dragData = {
+						element: element,
+						startX: event.clientX - element.x,
+						startY: event.clientY - element.y
+					};
+					document.addEventListener('mousemove', this.onDragMove);
+					document.addEventListener('mouseup', this.onDragEnd);
+				},
+
+				onDragMove(event) {
+					if (this.dragData) {
+						this.dragData.element.x = event.clientX - this.dragData.startX;
+						this.dragData.element.y = event.clientY - this.dragData.startY;
+					}
+				},
+
+				onDragEnd() {
+					if (this.dragData) {
+						this.saveState();
+						this.dragData = null;
+					}
+					document.removeEventListener('mousemove', this.onDragMove);
+					document.removeEventListener('mouseup', this.onDragEnd);
+				},
+
+				startResize(element, handle, event) {
+					this.resizeData = {
+						element: element,
+						startX: event.clientX,
+						startY: event.clientY,
+						startWidth: element.width,
+						startHeight: element.height
+					};
+					document.addEventListener('mousemove', this.onResizeMove);
+					document.addEventListener('mouseup', this.onResizeEnd);
+				},
+
+				onResizeMove(event) {
+					if (this.resizeData) {
+						const dx = event.clientX - this.resizeData.startX;
+						const dy = event.clientY - this.resizeData.startY;
+						
+						this.resizeData.element.width = Math.max(20, this.resizeData.startWidth + dx);
+						this.resizeData.element.height = Math.max(10, this.resizeData.startHeight + dy);
+					}
+				},
+
+				onResizeEnd() {
+					if (this.resizeData) {
+						this.saveState();
+						this.resizeData = null;
+					}
+					document.removeEventListener('mousemove', this.onResizeMove);
+					document.removeEventListener('mouseup', this.onResizeEnd);
+				},
+
+				zoomIn() {
+					this.zoom = Math.min(3, this.zoom * 1.2);
+				},
+
+				zoomOut() {
+					this.zoom = Math.max(0.3, this.zoom * 0.8);
+				},
+
+				resetZoom() {
+					this.zoom = 1;
+				},
+
+				saveState() {
+					const state = JSON.stringify({
+						elements: JSON.parse(JSON.stringify(this.elements)),
+						template: JSON.parse(JSON.stringify(this.template))
+					});
+					
+					this.history = this.history.slice(0, this.historyIndex + 1);
+					this.history.push(state);
+					this.historyIndex++;
+					
+					if (this.history.length > 50) {
+						this.history.shift();
+						this.historyIndex--;
+					}
+				},
+
+				undo() {
+					if (this.canUndo) {
+						this.historyIndex--;
+						this.restoreState(this.history[this.historyIndex]);
+					}
+				},
+
+				redo() {
+					if (this.canRedo) {
+						this.historyIndex++;
+						this.restoreState(this.history[this.historyIndex]);
+					}
+				},
+
+				restoreState(stateStr) {
+					const state = JSON.parse(stateStr);
+					this.elements = state.elements;
+					this.template = state.template;
+					this.selectedElement = null;
+				},
+
+				clearCanvas() {
+					this.elements = [];
+					this.selectedElement = null;
+					this.saveState();
+				},
+
+				togglePreviewMode() {
+					if (this.previewMode) {
+						this.loadRecordOptions();
+					}
+				},
+
+				loadRecordOptions() {
+					frappe.call({
+						method: 'frappe.client.get_list',
+						args: {
+							doctype: 'Item',
+							fields: ['name', 'item_name'],
+							limit: 20
+						},
+						callback: (r) => {
+							if (r.message) {
+								this.recordOptions = r.message.map(item => ({
+									value: item.name,
+									label: `${item.name} - ${item.item_name}`
+								}));
+							}
+						}
+					});
+				},
+
+				fetchLiveData() {
+					if (!this.selectedRecord) return;
+					
+					frappe.call({
+						method: 'frappe.client.get',
+						args: {
+							doctype: 'Item',
+							name: this.selectedRecord
+						},
+						callback: (r) => {
+							if (r.message) {
+								const item = r.message;
+								this.liveData = {
+									item_code: item.name,
+									item_name: item.item_name,
+									batch_no: 'BATCH' + Math.floor(Math.random() * 1000),
+									serial_no: 'SN' + Math.floor(Math.random() * 1000),
+									mfg_date: new Date().toLocaleDateString(),
+									exp_date: new Date(Date.now() + 365*24*60*60*1000).toLocaleDateString(),
+									quantity: Math.floor(Math.random() * 100) + 1,
+									company: frappe.defaults.get_user_default('Company') || 'Sample Company'
+								};
+							}
+						}
+					});
+				},
+
+				saveTemplate() {
+					if (!this.template.name) {
+						frappe.msgprint('Please enter template name');
+						return;
+					}
+
+					const templateData = {
+						name: this.template.name,
+						template_type: this.template.type,
+						label_width: this.template.width,
+						label_height: this.template.height,
+						elements: this.elements.map(el => ({
+							type: el.type,
+							field: el.type,
+							x: el.x,
+							y: el.y,
+							width: el.width,
+							height: el.height,
+							fontSize: el.fontSize + 'px',
+							color: el.color,
+							content: el.content
+						}))
+					};
+
+					frappe.call({
+						method: 'barcode.barcode.api.save_visual_template',
+						args: { template_data: templateData },
+						callback: (r) => {
+							if (r.message && r.message.success) {
+								frappe.show_alert('✅ Template saved successfully');
+							} else {
+								frappe.msgprint('❌ Error saving template');
+							}
+						}
+					});
+				},
+
+				uploadImage(element) {
+					const input = document.createElement('input');
+					input.type = 'file';
+					input.accept = 'image/*';
+					input.onchange = (e) => {
+						const file = e.target.files[0];
+						if (file) {
+							const reader = new FileReader();
+							reader.onload = (e) => {
+								element.imageUrl = e.target.result;
+								this.saveState();
+							};
+							reader.readAsDataURL(file);
+						}
+					};
+					input.click();
+				},
+
+				previewLabel() {
+					let html = `<div style="width: ${this.template.width}mm; height: ${this.template.height}mm; border: 1px solid #000; position: relative; background: white; font-family: Arial;">`;
+					
+					this.elements.forEach(el => {
+						const content = this.renderElement(el);
+						html += `<div style="position: absolute; left: ${el.x}px; top: ${el.y}px; width: ${el.width}px; height: ${el.height}px; font-size: ${el.fontSize}px; font-weight: ${el.fontWeight || 'normal'}; color: ${el.color};">${content}</div>`;
+					});
+					
+					html += '</div>';
+
 					const preview = window.open('', '_blank');
-					preview.document.write(r.message.html);
-					preview.document.close();
+					preview.document.write(`
+						<html>
+						<head><title>Label Preview</title></head>
+						<body style="padding: 20px; background: #f5f5f5;">${html}</body>
+						</html>
+					`);
 				}
+			},
+
+			mounted() {
+				this.saveState();
 			}
 		});
-	}
 
-	show() {
-		// Called when page is shown
-	}
-
-	load_templates() {
-		// Load existing templates for editing
+		this.app.mount('#barcode-designer-app');
 	}
 }
