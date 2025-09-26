@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"rfHBqkj8iR\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Barcode</span>\",\"col\":12}},{\"id\":\"hrupBOE4lk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Bar code\",\"col\":3}}]",
+ "content": "[{\"id\":\"rfHBqkj8iR\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Barcode</span>\",\"col\":12}},{\"id\":\"hrupBOE4lk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Bar code\",\"col\":3}},{\"id\":\"C3NCt2o8jd\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"C-NmqJEFt9\",\"type\":\"card\",\"data\":{\"card_name\":\"Barcode\",\"col\":4}}]",
  "creation": "2025-09-26 19:11:37.369567",
  "custom_blocks": [],
  "docstatus": 0,
@@ -11,8 +11,48 @@
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Barcode",
- "links": [],
- "modified": "2025-09-26 19:14:06.377168",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Barcode",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Barcode Label Settings",
+   "link_count": 0,
+   "link_to": "Barcode Label Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Barcode Label Template",
+   "link_count": 0,
+   "link_to": "Barcode Label Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Barcode Print Log",
+   "link_count": 0,
+   "link_to": "Barcode Print Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-09-26 19:22:34.760756",
  "modified_by": "Administrator",
  "module": "Barcode",
  "name": "Barcode",
