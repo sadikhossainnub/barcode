@@ -1,6 +1,7 @@
 [
  {
   "doctype": "Barcode Label Template",
+  "name": "Default Item Label",
   "template_name": "Default Item Label",
   "template_type": "Item",
   "is_default": 1,
@@ -18,6 +19,7 @@
  },
  {
   "doctype": "Barcode Label Template",
+  "name": "Default Batch Label",
   "template_name": "Default Batch Label",
   "template_type": "Batch",
   "is_default": 1,
@@ -37,6 +39,7 @@
  },
  {
   "doctype": "Barcode Label Template",
+  "name": "Default Serial Label",
   "template_name": "Default Serial Label",
   "template_type": "Serial No",
   "is_default": 1,
