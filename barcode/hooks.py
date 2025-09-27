@@ -47,7 +47,8 @@ doctype_js = {
 	"Item": "public/js/item.js",
 	"Batch": "public/js/batch.js",
 	"Serial No": "public/js/serial_no.js",
-	"Delivery Note": "public/js/delivery_note.js"
+	"Delivery Note": "public/js/delivery_note.js",
+	"Barcode Label Template": "public/js/barcode_label_template.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

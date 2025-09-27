@@ -88,8 +88,29 @@ class VueBarcodeDesigner {
 					<div class="section">
 						<h4>Actions</h4>
 						<button @click="saveTemplate()" class="btn btn-success btn-block">💾 Save</button>
-						<button @click="previewLabel()" class="btn btn-info btn-block">👁️ Preview</button>
+						<button @click="previewPDF()" class="btn btn-info btn-block">📄 PDF Preview</button>
+						<button @click="printDirect()" class="btn btn-warning btn-block">🖨️ Print Direct</button>
 						<button @click="clearCanvas()" class="btn btn-danger btn-block">🗑️ Clear</button>
+					</div>
+
+					<div class="section">
+						<h4>Print Settings</h4>
+						<div class="form-group">
+							<label>Copies</label>
+							<input v-model.number="printSettings.copies" type="number" class="form-control" min="1" max="100" value="1">
+						</div>
+						<div class="form-group">
+							<label>Print Mode</label>
+							<select v-model="printSettings.mode" class="form-control">
+								<option value="pdf">PDF Output</option>
+								<option value="thermal">Thermal Printer</option>
+								<option value="laser">Laser Printer</option>
+							</select>
+						</div>
+						<div v-if="printSettings.mode === 'thermal'" class="form-group">
+							<label>Printer IP</label>
+							<input v-model="printSettings.printerIP" class="form-control" placeholder="192.168.1.100">
+						</div>
 					</div>
 				</div>
 
@@ -226,7 +247,12 @@ class VueBarcodeDesigner {
 					},
 					previewMode: false,
 					selectedRecord: null,
-					recordOptions: []
+					recordOptions: [],
+					printSettings: {
+						copies: 1,
+						mode: 'pdf',
+						printerIP: ''
+					}
 				}
 			},
 			computed: {
@@ -666,6 +692,68 @@ class VueBarcodeDesigner {
 						}
 					};
 					input.click();
+				},
+
+				previewPDF() {
+					const templateData = this.generatePrintData();
+					
+					frappe.call({
+						method: 'barcode.barcode.api.generate_pdf_preview',
+						args: {
+							template_data: templateData,
+							copies: this.printSettings.copies
+						},
+						callback: (r) => {
+							if (r.message && r.message.success) {
+								// Open PDF in new window
+								const pdfUrl = r.message.pdf_url;
+								window.open(pdfUrl, '_blank');
+							} else {
+								frappe.msgprint('Error generating PDF: ' + (r.message?.error || 'Unknown error'));
+							}
+						}
+					});
+				},
+
+				printDirect() {
+					const templateData = this.generatePrintData();
+					
+					frappe.call({
+						method: 'barcode.barcode.api.send_print_command',
+						args: {
+							template_data: templateData,
+							print_settings: this.printSettings
+						},
+						callback: (r) => {
+							if (r.message && r.message.success) {
+								frappe.show_alert('Print job sent successfully');
+							} else {
+								frappe.msgprint('Print error: ' + (r.message?.error || 'Unknown error'));
+							}
+						}
+					});
+				},
+
+				generatePrintData() {
+					return {
+						name: this.template.name || 'Untitled',
+						width: this.template.width,
+						height: this.template.height,
+						elements: this.elements.map(el => ({
+							type: el.type,
+							x: el.x,
+							y: el.y,
+							width: el.width,
+							height: el.height,
+							content: el.content,
+							fontSize: el.fontSize,
+							fontWeight: el.fontWeight,
+							color: el.color,
+							imageUrl: el.imageUrl,
+							qrContent: el.qrContent
+						})),
+						liveData: this.previewMode ? this.liveData : null
+					};
 				},
 
 				previewLabel() {

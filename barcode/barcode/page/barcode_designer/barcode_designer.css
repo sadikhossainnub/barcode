@@ -427,6 +427,50 @@ textarea.form-control {
     border-color: #1d2124;
 }
 
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+    border: 1px solid #ffc107;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+    border-color: #d39e00;
+    color: #212529;
+}
+
+/* Print settings section */
+.print-settings {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+.print-mode-indicator {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.print-mode-pdf {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.print-mode-thermal {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.print-mode-laser {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
 /* Properties Panel */
 .properties-panel {
     width: 280px;
