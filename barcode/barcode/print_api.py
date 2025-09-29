@@ -5,6 +5,16 @@ import base64
 from frappe import _
 from frappe.utils import get_site_path
 import os
+from PIL import Image, ImageDraw, ImageFont
+try:
+	from barcode import Code128
+	from barcode.writer import ImageWriter
+except ImportError:
+	Code128 = None
+	try:
+		import qrcode
+	except ImportError:
+		qrcode = None
 
 @frappe.whitelist()
 def generate_pdf_preview(template_data, copies=1):
@@ -17,13 +27,16 @@ def generate_pdf_preview(template_data, copies=1):
 		html_content = generate_label_html(template_data, copies)
 		
 		# Create PDF using frappe's PDF generator
-		pdf_content = frappe.get_print(
-			doctype="",
-			name="",
-			print_format="",
-			html_content=html_content,
-			as_pdf=True
-		)
+		try:
+			from frappe.utils.pdf import get_pdf
+			pdf_content = get_pdf(html_content, {'page-size': 'A4', 'margin-top': '0mm', 'margin-bottom': '0mm', 'margin-left': '0mm', 'margin-right': '0mm'})
+		except Exception as pdf_error:
+			# Fallback: return HTML for browser printing
+			return {
+				'success': True,
+				'html_content': html_content,
+				'message': f'PDF generation failed, using HTML preview. Error: {str(pdf_error)}'
+			}
 		
 		# Save PDF to temp file
 		import tempfile
@@ -207,16 +220,20 @@ def get_element_content(element, live_data=None):
 	
 	if element_type == 'barcode':
 		barcode_value = live_data.get('item_code') if live_data else content
-		return f'<img src="/barcode?type=Code128&value={barcode_value}&width=120&height=40" style="max-width: 100%; height: auto;" />'
+		barcode_img = generate_barcode_base64(barcode_value)
+		return f'<img src="data:image/png;base64,{barcode_img}" style="max-width: 100%; height: auto;" />'
 	elif element_type == 'batch_barcode':
 		barcode_value = live_data.get('batch_no') if live_data else content
-		return f'<img src="/barcode?type=Code128&value={barcode_value}&width=120&height=40" style="max-width: 100%; height: auto;" />'
+		barcode_img = generate_barcode_base64(barcode_value)
+		return f'<img src="data:image/png;base64,{barcode_img}" style="max-width: 100%; height: auto;" />'
 	elif element_type == 'serial_barcode':
 		barcode_value = live_data.get('serial_no') if live_data else content
-		return f'<img src="/barcode?type=Code128&value={barcode_value}&width=120&height=40" style="max-width: 100%; height: auto;" />'
+		barcode_img = generate_barcode_base64(barcode_value)
+		return f'<img src="data:image/png;base64,{barcode_img}" style="max-width: 100%; height: auto;" />'
 	elif element_type == 'qr':
 		qr_content = element.get('qrContent', content)
-		return f'<img src="/qrcode?data={qr_content}&size=100" style="width: 100%; height: 100%; object-fit: contain;" />'
+		qr_img = generate_qr_base64(qr_content)
+		return f'<img src="data:image/png;base64,{qr_img}" style="width: 100%; height: 100%; object-fit: contain;" />'
 	elif element_type in ['logo', 'image']:
 		image_url = element.get('imageUrl', '')
 		if image_url:
@@ -374,6 +391,65 @@ def prepare_sample_data(sample_data):
 		})
 		
 	return default_data
+
+def generate_barcode_base64(value):
+	"""Generate base64 encoded barcode image"""
+	try:
+		if Code128:
+			code = Code128(str(value), writer=ImageWriter())
+			buffer = io.BytesIO()
+			code.write(buffer)
+			buffer.seek(0)
+			return base64.b64encode(buffer.getvalue()).decode()
+		else:
+			# Fallback: create simple text image
+			img = Image.new('RGB', (200, 50), color='white')
+			draw = ImageDraw.Draw(img)
+			draw.text((10, 15), str(value), fill='black')
+			buffer = io.BytesIO()
+			img.save(buffer, format='PNG')
+			buffer.seek(0)
+			return base64.b64encode(buffer.getvalue()).decode()
+	except Exception as e:
+		# Simple fallback image
+		img = Image.new('RGB', (200, 50), color='white')
+		draw = ImageDraw.Draw(img)
+		draw.text((10, 15), str(value), fill='black')
+		buffer = io.BytesIO()
+		img.save(buffer, format='PNG')
+		buffer.seek(0)
+		return base64.b64encode(buffer.getvalue()).decode()
+
+def generate_qr_base64(value):
+	"""Generate base64 encoded QR code image"""
+	try:
+		if qrcode:
+			qr = qrcode.QRCode(version=1, box_size=10, border=5)
+			qr.add_data(str(value))
+			qr.make(fit=True)
+			img = qr.make_image(fill_color="black", back_color="white")
+			buffer = io.BytesIO()
+			img.save(buffer, format='PNG')
+			buffer.seek(0)
+			return base64.b64encode(buffer.getvalue()).decode()
+		else:
+			# Fallback: create simple text image
+			img = Image.new('RGB', (100, 100), color='white')
+			draw = ImageDraw.Draw(img)
+			draw.text((10, 40), f"QR:{str(value)[:10]}", fill='black')
+			buffer = io.BytesIO()
+			img.save(buffer, format='PNG')
+			buffer.seek(0)
+			return base64.b64encode(buffer.getvalue()).decode()
+	except Exception as e:
+		# Simple fallback image
+		img = Image.new('RGB', (100, 100), color='white')
+		draw = ImageDraw.Draw(img)
+		draw.text((10, 40), f"QR:{str(value)[:10]}", fill='black')
+		buffer = io.BytesIO()
+		img.save(buffer, format='PNG')
+		buffer.seek(0)
+		return base64.b64encode(buffer.getvalue()).decode()
 
 @frappe.whitelist()
 def download_pdf(file):
