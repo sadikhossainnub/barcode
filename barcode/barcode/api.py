@@ -236,6 +236,120 @@ def bulk_print_labels(doctype, docnames, template=None, copies=1):
 	return results
 
 @frappe.whitelist()
+def template_pdf_preview(template_name):
+	"""Generate PDF preview from template"""
+	try:
+		template = frappe.get_doc("Barcode Label Template", template_name)
+		
+		template_data = {
+			'name': template.template_name,
+			'width': template.label_width,
+			'height': template.label_height,
+			'elements': parse_template_elements(template),
+			'liveData': {
+				'item_code': 'SAMPLE001',
+				'item_name': 'Sample Product',
+				'batch_no': 'BATCH001',
+				'serial_no': 'SN001',
+				'company': 'Sample Company'
+			}
+		}
+		
+		from barcode.barcode.print_api import generate_pdf_preview
+		return generate_pdf_preview(template_data, 1)
+		
+	except Exception as e:
+		return {'success': False, 'error': str(e)}
+
+@frappe.whitelist()
+def print_template_direct(template_name, print_settings, sample_data=None):
+	"""Print template directly from doctype"""
+	try:
+		template = frappe.get_doc("Barcode Label Template", template_name)
+		print_settings = json.loads(print_settings) if isinstance(print_settings, str) else print_settings
+		sample_data = json.loads(sample_data) if isinstance(sample_data, str) else (sample_data or {})
+		
+		template_data = {
+			'name': template.template_name,
+			'width': template.label_width,
+			'height': template.label_height,
+			'elements': parse_template_elements(template),
+			'liveData': prepare_sample_data(sample_data)
+		}
+		
+		copies = int(print_settings.get('copies', 1))
+		mode = print_settings.get('mode', 'pdf_output')
+		
+		if mode == 'pdf_output':
+			from barcode.barcode.print_api import generate_pdf_preview
+			return generate_pdf_preview(template_data, copies)
+		else:
+			from barcode.barcode.print_api import send_print_command
+			return send_print_command(template_data, print_settings)
+			
+	except Exception as e:
+		frappe.log_error(f"Template print error: {str(e)}")
+		return {'success': False, 'error': str(e)}
+
+def parse_template_elements(template):
+	"""Parse template to extract elements"""
+	elements = []
+	
+	if template.show_item_code:
+		elements.append({
+			'type': 'item_code',
+			'x': 10, 'y': 10, 'width': 80, 'height': 20,
+			'fontSize': 12, 'content': 'item_code'
+		})
+		
+	if template.show_item_name:
+		elements.append({
+			'type': 'item_name',
+			'x': 10, 'y': 35, 'width': 120, 'height': 20,
+			'fontSize': 10, 'content': 'item_name'
+		})
+		
+	if template.show_batch_no:
+		elements.append({
+			'type': 'batch_no',
+			'x': 10, 'y': 60, 'width': 80, 'height': 15,
+			'fontSize': 9, 'content': 'batch_no'
+		})
+		
+	elements.append({
+		'type': 'barcode',
+		'x': 10, 'y': 80, 'width': 120, 'height': 40,
+		'fontSize': 12, 'content': 'barcode'
+	})
+	
+	return elements
+
+def prepare_sample_data(sample_data):
+	"""Prepare sample data for printing"""
+	default_data = {
+		'item_code': 'SAMPLE001',
+		'item_name': 'Sample Product Name',
+		'batch_no': 'BATCH001',
+		'serial_no': 'SN001',
+		'company': 'Sample Company'
+	}
+	
+	if sample_data and sample_data.get('item_code'):
+		try:
+			item = frappe.get_doc('Item', sample_data['item_code'])
+			default_data.update({
+				'item_code': item.name,
+				'item_name': item.item_name
+			})
+		except:
+			pass
+			
+	if sample_data:
+		default_data.update({k: v for k, v in sample_data.items() if v})
+		
+	return default_data
+
+@frappe.whitelist()
 def save_visual_template(template_data):
 	"""Save visually designed template"""
 	try:

@@ -69,7 +69,9 @@ class VueBarcodeDesigner {
 							<button @click="addElement('item_code')" class="btn btn-sm btn-primary">📦 Item Code</button>
 							<button @click="addElement('item_name')" class="btn btn-sm btn-primary">🏷️ Item Name</button>
 							<button @click="addElement('batch_no')" class="btn btn-sm btn-primary">🔢 Batch No</button>
-							<button @click="addElement('barcode')" class="btn btn-sm btn-primary">📱 Barcode</button>
+							<button @click="addElement('barcode')" class="btn btn-sm btn-primary">📱 Item Barcode</button>
+							<button @click="addElement('batch_barcode')" class="btn btn-sm btn-success">📱 Batch Barcode</button>
+							<button @click="addElement('serial_barcode')" class="btn btn-sm btn-info">📱 Serial Barcode</button>
 						</div>
 					</div>
 
@@ -279,7 +281,10 @@ class VueBarcodeDesigner {
 						item_code: 'ITEM001',
 						item_name: 'Sample Item Name',
 						batch_no: 'BATCH001',
-						barcode: '||||| ||||'
+						serial_no: 'SN001',
+						barcode: '||||| ||||',
+						batch_barcode: '||||| ||||',
+						serial_barcode: '||||| ||||'
 					};
 
 					const element = {
@@ -287,8 +292,8 @@ class VueBarcodeDesigner {
 						type: type,
 						x: 10,
 						y: 10,
-						width: 80,
-						height: 25,
+						width: type.includes('barcode') ? 120 : 80,
+						height: type.includes('barcode') ? 40 : 25,
 						fontSize: 12,
 						color: '#000000',
 						content: samples[type] || type,
@@ -456,6 +461,16 @@ class VueBarcodeDesigner {
 								return `<img src="/barcode?type=Code128&value=${this.liveData.item_code}&width=120&height=40" style="max-width: 100%; height: auto;" />`;
 							}
 							return '<div style="font-family: monospace; text-align: center; line-height: 1;">' + content + '</div>';
+						case 'batch_barcode':
+							if (this.previewMode && this.liveData.batch_no) {
+								return `<img src="/barcode?type=Code128&value=${this.liveData.batch_no}&width=120&height=40" style="max-width: 100%; height: auto;" />`;
+							}
+							return '<div style="font-family: monospace; text-align: center; line-height: 1;">||||| ||||</div>';
+						case 'serial_barcode':
+							if (this.previewMode && this.liveData.serial_no) {
+								return `<img src="/barcode?type=Code128&value=${this.liveData.serial_no}&width=120&height=40" style="max-width: 100%; height: auto;" />`;
+							}
+							return '<div style="font-family: monospace; text-align: center; line-height: 1;">||||| ||||</div>';
 						case 'logo':
 						case 'image':
 							if (element.imageUrl) {

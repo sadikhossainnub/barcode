@@ -374,6 +374,8 @@
 .canvas-element.item_name { border-color: #007bff; }
 .canvas-element.batch_no { border-color: #ffc107; }
 .canvas-element.barcode { border-color: #17a2b8; }
+.canvas-element.batch_barcode { border-color: #28a745; }
+.canvas-element.serial_barcode { border-color: #ffc107; }
 .canvas-element.text { border-color: #6f42c1; }
 .canvas-element.custom_text { border-color: #6f42c1; }
 .canvas-element.line { border-color: #fd7e14; }

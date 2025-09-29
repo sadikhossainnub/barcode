@@ -208,6 +208,12 @@ def get_element_content(element, live_data=None):
 	if element_type == 'barcode':
 		barcode_value = live_data.get('item_code') if live_data else content
 		return f'<img src="/barcode?type=Code128&value={barcode_value}&width=120&height=40" style="max-width: 100%; height: auto;" />'
+	elif element_type == 'batch_barcode':
+		barcode_value = live_data.get('batch_no') if live_data else content
+		return f'<img src="/barcode?type=Code128&value={barcode_value}&width=120&height=40" style="max-width: 100%; height: auto;" />'
+	elif element_type == 'serial_barcode':
+		barcode_value = live_data.get('serial_no') if live_data else content
+		return f'<img src="/barcode?type=Code128&value={barcode_value}&width=120&height=40" style="max-width: 100%; height: auto;" />'
 	elif element_type == 'qr':
 		qr_content = element.get('qrContent', content)
 		return f'<img src="/qrcode?data={qr_content}&size=100" style="width: 100%; height: 100%; object-fit: contain;" />'
