@@ -33,6 +33,10 @@ class BarcodeLabelTemplate(Document):
 			html += '<div class="quantity">Qty: {{ quantity }}</div>'
 		if self.show_company:
 			html += '<div class="company">{{ company }}</div>'
+		if self.show_custom_field_1 and self.custom_field_1_label:
+			html += f'<div class="custom-field-1">{self.custom_field_1_label}: {{{{ custom_field_1_value }}}}</div>'
+		if self.show_custom_field_2 and self.custom_field_2_label:
+			html += f'<div class="custom-field-2">{self.custom_field_2_label}: {{{{ custom_field_2_value }}}}</div>'
 		
 		html += '<div class="barcode">{{ barcode_html }}</div>'
 		html += '</div>'

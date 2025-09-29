@@ -22,7 +22,7 @@ def print_barcode_label(doctype, docname, template=None, copies=1, barcode_type=
 		template_doc = frappe.get_doc("Barcode Label Template", template)
 		
 		# Generate label data
-		label_data = prepare_label_data(doc, doctype)
+		label_data = prepare_label_data(doc, doctype, template_doc)
 		
 		# Generate barcode
 		barcode_html = generate_barcode(
@@ -93,7 +93,7 @@ def get_default_template(doctype):
 	
 	return template
 
-def prepare_label_data(doc, doctype):
+def prepare_label_data(doc, doctype, template_doc=None):
 	"""Prepare data for label rendering"""
 	data = {}
 	
@@ -126,6 +126,15 @@ def prepare_label_data(doc, doctype):
 			'barcode_value': doc.name,
 			'company': frappe.defaults.get_user_default("Company")
 		})
+	
+	# Add custom field data if template supports it
+	if template_doc:
+		if template_doc.show_custom_field_1:
+			data['custom_field_1_label'] = template_doc.custom_field_1_label or 'Custom Field 1'
+			data['custom_field_1_value'] = getattr(doc, 'custom_field_1', '300 GSM')  # Default value
+		if template_doc.show_custom_field_2:
+			data['custom_field_2_label'] = template_doc.custom_field_2_label or 'Custom Field 2'
+			data['custom_field_2_value'] = getattr(doc, 'custom_field_2', data.get('item_name', 'Research Board'))  # Default to item name
 	
 	return data
 
@@ -477,3 +486,68 @@ def generate_template_from_elements(elements):
 	css_styles = base_css + '\n'.join(css_parts)
 	
 	return html_template, css_styles
+
+@frappe.whitelist()
+def render_outer_box_label(item_code=None, custom_data=None):
+	"""Render Outer Box Label with sample or provided data"""
+	try:
+		# Get the Outer Box Label template
+		template = frappe.get_doc("Barcode Label Template", "Outer Box Label")
+		
+		# Prepare data
+		if item_code:
+			try:
+				item = frappe.get_doc("Item", item_code)
+				data = {
+					'item_code': item.item_code,
+					'item_name': item.item_name,
+					'company': frappe.defaults.get_user_default("Company") or 'Your Company'
+				}
+			except:
+				data = {
+					'item_code': item_code,
+					'item_name': 'Sample Item',
+					'company': 'Your Company'
+				}
+		else:
+			data = {
+				'item_code': 'SAMPLE001',
+				'item_name': 'Sample Product',
+				'company': 'Sample Company'
+			}
+		
+		# Add custom field data
+		if custom_data:
+			custom_data = json.loads(custom_data) if isinstance(custom_data, str) else custom_data
+			data.update(custom_data)
+		
+		# Set default custom field values if not provided
+		data.setdefault('custom_field_1_label', template.custom_field_1_label or 'SKU/SBN')
+		data.setdefault('custom_field_2_label', template.custom_field_2_label or 'Brand')
+		data.setdefault('custom_field_1_value', '300 GSM')
+		data.setdefault('custom_field_2_value', data.get('item_name', 'Research Board'))
+		
+		# Generate barcode
+		barcode_html = generate_barcode(
+			data['item_code'],
+			template.barcode_type,
+			template.barcode_width,
+			template.barcode_height
+		)
+		data['barcode_html'] = barcode_html
+		
+		# Render HTML
+		html_content = render_label_html(template, data)
+		
+		return {
+			'success': True,
+			'html': html_content,
+			'data': data
+		}
+		
+	except Exception as e:
+		frappe.log_error(f"Outer Box Label render error: {str(e)}")
+		return {
+			'success': False,
+			'error': str(e)
+		}

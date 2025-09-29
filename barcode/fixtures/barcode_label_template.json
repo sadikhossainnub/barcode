@@ -54,5 +54,27 @@
   "show_barcode_text": 1,
   "html_template": "<div class=\"barcode-label\">\n  <div class=\"item-code\">{{ item_code }}</div>\n  <div class=\"serial-no\">S/N: {{ serial_no }}</div>\n  <div class=\"barcode\">{{ barcode_html }}</div>\n</div>",
   "css_styles": ".barcode-label {\n  width: 50mm;\n  height: 25mm;\n  padding: 2mm;\n  font-family: Arial, sans-serif;\n  font-size: 8pt;\n  border: 1px solid #000;\n  text-align: center;\n}\n.item-code {\n  font-weight: bold;\n  font-size: 9pt;\n}\n.serial-no {\n  font-weight: bold;\n  font-size: 8pt;\n  margin: 1mm 0;\n}\n.barcode {\n  margin: 1mm 0;\n}\n.barcode img {\n  max-width: 100%;\n  height: auto;\n}"
+ },
+ {
+  "doctype": "Barcode Label Template",
+  "name": "Outer Box Label",
+  "template_name": "Outer Box Label",
+  "template_type": "Item",
+  "is_default": 0,
+  "label_width": 80,
+  "label_height": 60,
+  "show_item_code": 1,
+  "show_item_name": 1,
+  "show_company": 1,
+  "show_custom_field_1": 1,
+  "custom_field_1_label": "SKU/SBN",
+  "show_custom_field_2": 1,
+  "custom_field_2_label": "Brand",
+  "barcode_type": "Code128",
+  "barcode_width": 250,
+  "barcode_height": 80,
+  "show_barcode_text": 1,
+  "html_template": "<div class=\"outer-box-label\">\n  <div class=\"header\">Outer Box</div>\n  <div class=\"sku-section\">\n    <div class=\"sku-label\">{{ custom_field_1_label or 'SKU/SBN' }}:</div>\n    <div class=\"sku-value\">{{ item_code }}</div>\n  </div>\n  <div class=\"brand-section\">\n    <div class=\"brand-label\">{{ custom_field_2_label or 'Brand' }}:</div>\n    <div class=\"brand-value\">{{ item_name or company }}</div>\n  </div>\n  <div class=\"barcode-section\">\n    <div class=\"barcode\">{{ barcode_html }}</div>\n  </div>\n</div>",
+  "css_styles": ".outer-box-label {\n  width: 80mm;\n  height: 60mm;\n  padding: 3mm;\n  font-family: Arial, sans-serif;\n  border: 2px solid #000;\n  background: white;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n}\n.header {\n  font-size: 14pt;\n  font-weight: bold;\n  text-align: left;\n  margin-bottom: 2mm;\n}\n.sku-section, .brand-section {\n  display: flex;\n  align-items: baseline;\n  margin: 1mm 0;\n}\n.sku-label, .brand-label {\n  font-size: 10pt;\n  font-weight: bold;\n  margin-right: 2mm;\n  min-width: 20mm;\n}\n.sku-value, .brand-value {\n  font-size: 10pt;\n  flex: 1;\n}\n.barcode-section {\n  text-align: center;\n  margin-top: 2mm;\n}\n.barcode img {\n  max-width: 100%;\n  height: auto;\n}"
  }
 ]

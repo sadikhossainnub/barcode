@@ -31,7 +31,13 @@
   "barcode_width",
   "column_break_21",
   "barcode_height",
-  "show_barcode_text"
+  "show_barcode_text",
+  "custom_fields_section",
+  "show_custom_field_1",
+  "custom_field_1_label",
+  "column_break_25",
+  "show_custom_field_2",
+  "custom_field_2_label"
  ],
  "fields": [
   {
@@ -181,6 +187,37 @@
    "fieldname": "show_barcode_text",
    "fieldtype": "Check",
    "label": "Show Barcode Text"
+  },
+  {
+   "fieldname": "custom_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Custom Fields"
+  },
+  {
+   "fieldname": "show_custom_field_1",
+   "fieldtype": "Check",
+   "label": "Show Custom Field 1"
+  },
+  {
+   "fieldname": "custom_field_1_label",
+   "fieldtype": "Data",
+   "label": "Custom Field 1 Label",
+   "depends_on": "show_custom_field_1"
+  },
+  {
+   "fieldname": "column_break_25",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "show_custom_field_2",
+   "fieldtype": "Check",
+   "label": "Show Custom Field 2"
+  },
+  {
+   "fieldname": "custom_field_2_label",
+   "fieldtype": "Data",
+   "label": "Custom Field 2 Label",
+   "depends_on": "show_custom_field_2"
   }
  ],
  "index_web_pages_for_search": 1,

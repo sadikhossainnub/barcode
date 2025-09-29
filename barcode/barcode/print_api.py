@@ -374,7 +374,9 @@ def prepare_sample_data(sample_data):
 		'mfg_date': '01/01/2024',
 		'exp_date': '01/01/2025',
 		'quantity': '10',
-		'company': 'Sample Company'
+		'company': 'Sample Company',
+		'custom_field_1_value': '300 GSM',
+		'custom_field_2_value': 'Research Board'
 	}
 	
 	# Override with provided sample data

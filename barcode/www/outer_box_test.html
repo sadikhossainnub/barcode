@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Outer Box Label Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, button { padding: 8px; margin: 5px 0; }
+        input[type="text"] { width: 200px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+        .preview { margin-top: 20px; padding: 20px; border: 1px solid #ddd; background: white; }
+        .error { color: red; margin: 10px 0; }
+        .success { color: green; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Outer Box Label Test</h1>
+        <p>Test the Outer Box Label template that matches your attachment design.</p>
+        
+        <div class="form-group">
+            <label for="item_code">Item Code:</label>
+            <input type="text" id="item_code" value="SAMPLE001" placeholder="Enter item code">
+        </div>
+        
+        <div class="form-group">
+            <label for="sku_value">SKU/SBN Value:</label>
+            <input type="text" id="sku_value" value="300 GSM" placeholder="Enter SKU/SBN value">
+        </div>
+        
+        <div class="form-group">
+            <label for="brand_value">Brand Value:</label>
+            <input type="text" id="brand_value" value="Research Board" placeholder="Enter brand value">
+        </div>
+        
+        <button onclick="generateLabel()">Generate Label</button>
+        
+        <div id="message"></div>
+        <div id="preview" class="preview" style="display: none;"></div>
+    </div>
+
+    <script>
+        function generateLabel() {
+            const itemCode = document.getElementById('item_code').value;
+            const skuValue = document.getElementById('sku_value').value;
+            const brandValue = document.getElementById('brand_value').value;
+            
+            const customData = {
+                custom_field_1_value: skuValue,
+                custom_field_2_value: brandValue
+            };
+            
+            // Call the API
+            fetch('/api/method/barcode.barcode.api.render_outer_box_label', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Frappe-CSRF-Token': frappe.csrf_token
+                },
+                body: JSON.stringify({
+                    item_code: itemCode,
+                    custom_data: JSON.stringify(customData)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('message');
+                const previewDiv = document.getElementById('preview');
+                
+                if (data.message && data.message.success) {
+                    messageDiv.innerHTML = '<div class="success">Label generated successfully!</div>';
+                    previewDiv.innerHTML = data.message.html;
+                    previewDiv.style.display = 'block';
+                } else {
+                    messageDiv.innerHTML = '<div class="error">Error: ' + (data.message ? data.message.error : 'Unknown error') + '</div>';
+                    previewDiv.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                document.getElementById('message').innerHTML = '<div class="error">Network error: ' + error.message + '</div>';
+                document.getElementById('preview').style.display = 'none';
+            });
+        }
+        
+        // Auto-generate on page load
+        window.onload = function() {
+            generateLabel();
+        };
+    </script>
+</body>
+</html>
